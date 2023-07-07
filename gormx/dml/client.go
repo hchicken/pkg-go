@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/hchicken/pkg-go/mysql"
+	"github.com/hchicken/pkg-go/gormx"
 	"github.com/hchicken/pkg-go/util"
 
 	"gorm.io/gorm"
@@ -12,7 +12,7 @@ import (
 )
 
 type client struct {
-	pool mysql.Pool
+	pool gormx.Pool
 	opts Options
 	once sync.Once
 }

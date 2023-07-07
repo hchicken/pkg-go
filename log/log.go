@@ -6,7 +6,7 @@ import (
 	"path"
 	"sync"
 
-	"github.com/hchicken/pkg-go/util"
+	"github.com/hchicken/pkg-go/stringx"
 	"github.com/sirupsen/logrus"
 )
 
@@ -81,7 +81,7 @@ func (ls *Logger) Get(file string) *LoggerIns {
 	defer ls.Unlock()
 
 	// 获取对应的logger
-	key := util.StrToMd5(file)
+	key := stringx.StrToMd5(file)
 	if l, ok := ls.opts.table[key]; ok {
 		return l
 	}

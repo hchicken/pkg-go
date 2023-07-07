@@ -1,7 +1,7 @@
 package dml
 
 import (
-	"github.com/hchicken/pkg-go/mysql"
+	"github.com/hchicken/pkg-go/gormx"
 )
 
 // Option TODO
@@ -10,7 +10,7 @@ type Option func(*Options)
 // Options TODO
 // db查询options
 type Options struct {
-	Pool       mysql.Pool  // pool
+	Pool       gormx.Pool  // pool
 	DbModel    interface{} // DB结构体
 	ScanModel  interface{} // 查询结果
 	Conditions interface{} // 查询条件
@@ -35,7 +35,7 @@ func newOptions(opts ...Option) Options {
 }
 
 // Pool TODO
-func Pool(pool mysql.Pool) Option {
+func Pool(pool gormx.Pool) Option {
 	return func(o *Options) {
 		o.Pool = pool
 	}

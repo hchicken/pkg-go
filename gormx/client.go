@@ -1,4 +1,4 @@
-package mysql
+package gormx
 
 import (
 	"fmt"
@@ -35,7 +35,7 @@ func newClient(opts ...Option) (Pool, error) {
 	return &client{opts: options, DB: pool}, nil
 }
 
-// GetConn TODO
+// GetConn 获取连接
 func (c client) GetConn() *gorm.DB {
 	return c.DB
 }

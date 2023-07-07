@@ -1,8 +1,9 @@
-package util
+package jwtx
 
 import (
-	"github.com/dgrijalva/jwt-go/v4"
 	"time"
+
+	"github.com/dgrijalva/jwt-go/v4"
 )
 
 var jwtSecret = []byte("9999")

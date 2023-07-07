@@ -1,11 +1,11 @@
-package mysql
+package gormx
 
 import "time"
 
 // Option ...
 type Option func(*Options)
 
-// Options mysql options
+// Options gormx options
 type Options struct {
 	uri             string
 	port            string

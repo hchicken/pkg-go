@@ -1,9 +1,11 @@
 package validator
 
 import (
-	"github.com/hchicken/pkg-go/date"
 	"strconv"
 	"time"
+
+	"github.com/go-playground/validator/v10"
+	"github.com/hchicken/pkg-go/date"
 )
 
 // timeStringToUnix 检查时间类型
