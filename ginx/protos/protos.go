@@ -1,4 +1,4 @@
-package ginx
+package protos
 
 // ReqQueryBase 查询请求
 type ReqQueryBase struct {

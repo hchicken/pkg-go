@@ -1,4 +1,4 @@
-package ginx
+package response
 
 import (
 	"fmt"
