@@ -1,19 +1,16 @@
 package validator
 
 import (
+	"github.com/hchicken/pkg-go/date"
 	"strconv"
 	"time"
-
-	"github.com/hchicken/pkg-go/util"
-
-	"github.com/go-playground/validator/v10"
 )
 
 // timeStringToUnix 检查时间类型
 func timeStringToUnix(fl validator.FieldLevel) bool {
 	v := fl.Field().String()
 	if v != "" {
-		timeUnix, err := util.TimeToUnixV2(v)
+		timeUnix, err := date.TimeToUnixV2(v)
 		if err != nil {
 			return false
 		}

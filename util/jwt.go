@@ -1,9 +1,8 @@
 package util
 
 import (
-	"time"
-
 	"github.com/dgrijalva/jwt-go/v4"
+	"time"
 )
 
 var jwtSecret = []byte("9999")
@@ -27,7 +26,7 @@ func GenerateToken(username, password string) (string, error) {
 		password,
 		jwt.StandardClaims{
 			ExpiresAt: &jwt.Time{expireTime},
-			Issuer:    "gin-blog",
+			Issuer:    "ginx-blog",
 		},
 	}
 

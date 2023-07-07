@@ -9,7 +9,6 @@ require (
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/gofrs/uuid v4.3.1+incompatible
-	github.com/gomodule/redigo v1.8.9
 	github.com/json-iterator/go v1.1.12
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.0
