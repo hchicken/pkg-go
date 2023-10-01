@@ -26,6 +26,8 @@ type Options struct {
 	data    any
 	output  any
 	async   bool
+
+	customField map[string]any
 }
 
 // Message ...
@@ -58,21 +60,35 @@ func Async(ok bool) Option {
 	}
 }
 
+// CustomField It is used for user customization
+func CustomField(key string, value any) Option {
+	return func(o *Options) {
+		o.customField[key] = value
+	}
+}
+
 // Json ...
 func Json(c *gin.Context, opts ...Option) {
 	options := Options{
-		message: "success",
-		code:    http.StatusOK,
-		status:  CODE_SUCCESS,
+		message:     "success",
+		code:        http.StatusOK,
+		status:      CODE_SUCCESS,
+		customField: map[string]any{},
 	}
 	for _, o := range opts {
 		o(&options)
 	}
-	c.AbortWithStatusJSON(options.code, gin.H{
+
+	retData := gin.H{
 		"trace_id": c.GetHeader(TraceId),
 		"code":     options.status,
 		"message":  options.message,
 		"data":     options.data,
 		"async":    options.async,
-	})
+	}
+	// custom return fields
+	for k, v := range options.customField {
+		retData[k] = v
+	}
+	c.AbortWithStatusJSON(options.code, retData)
 }
