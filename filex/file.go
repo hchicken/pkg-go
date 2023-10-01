@@ -30,16 +30,14 @@ func getCurrentAbPathByExecutable() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	res, err := filepath.EvalSymlinks(filepath.Dir(exePath))
-	return res, err
+	return filepath.EvalSymlinks(filepath.Dir(exePath))
 }
 
 // 获取当前执行文件绝对路径（go run）
 func getCurrentAbPathByCaller() string {
-	var abPath string
 	_, filename, _, ok := runtime.Caller(2)
 	if ok {
-		abPath = path.Dir(filename)
+		return path.Dir(filename)
 	}
-	return abPath
+	return ""
 }

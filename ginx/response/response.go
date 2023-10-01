@@ -7,77 +7,87 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// 定义状态码常量
 const (
-	CODE_SUCCESS = iota // 正确状态码
-	CODE_ERROR
+	CodeSuccess = iota // 正确状态码
+	CodeError          // 错误状态码
 )
 
-const (
-	TraceId = "private-trace-id"
-)
+// 定义TraceId常量
+const TraceId = "private-trace-id"
 
+// Option 是一个函数类型，用于修改Options
 type Option func(*Options)
 
-// Options http请求options
+// Options 结构体用于http请求的选项
 type Options struct {
-	message string
-	status  int
-	code    int
-	data    any
-	output  any
-	async   bool
-
-	customField map[string]any
+	message     string
+	status      int
+	code        int
+	data        interface{}
+	output      interface{}
+	async       bool
+	customField map[string]interface{}
 }
 
-// Message ...
+// NewOptions 创建一个新的Options实例
+func NewOptions() *Options {
+	return &Options{
+		message:     "success",
+		code:        http.StatusOK,
+		status:      CodeSuccess,
+		customField: make(map[string]interface{}),
+	}
+}
+
+// ApplyOptions 应用选项到Options实例
+func (o *Options) ApplyOptions(opts ...Option) {
+	for _, opt := range opts {
+		opt(o)
+	}
+}
+
+// Message 设置消息选项
 func Message(m string) Option {
 	return func(o *Options) {
 		o.message = m
 	}
 }
 
-// Error ...
+// Error 设置错误选项
 func Error(err error) Option {
 	return func(o *Options) {
 		o.message = fmt.Sprintf("%v", err)
-		o.status = CODE_ERROR
+		o.status = CodeError
 		o.code = http.StatusBadRequest
 	}
 }
 
-// Data ...
-func Data(data any) Option {
+// Data 设置数据选项
+func Data(data interface{}) Option {
 	return func(o *Options) {
 		o.data = data
 	}
 }
 
-// Async ...
+// Async 设置异步选项
 func Async(ok bool) Option {
 	return func(o *Options) {
 		o.async = ok
 	}
 }
 
-// CustomField It is used for user customization
-func CustomField(key string, value any) Option {
+// CustomField 设置自定义字段选项
+func CustomField(key string, value interface{}) Option {
 	return func(o *Options) {
 		o.customField[key] = value
 	}
 }
 
-// Json ...
+// Json 生成并返回JSON响应
 func Json(c *gin.Context, opts ...Option) {
-	options := Options{
-		message:     "success",
-		code:        http.StatusOK,
-		status:      CODE_SUCCESS,
-		customField: map[string]any{},
-	}
-	for _, o := range opts {
-		o(&options)
-	}
+	options := NewOptions()
+	options.ApplyOptions(opts...)
 
 	retData := gin.H{
 		"trace_id": c.GetHeader(TraceId),
@@ -86,9 +96,11 @@ func Json(c *gin.Context, opts ...Option) {
 		"data":     options.data,
 		"async":    options.async,
 	}
-	// custom return fields
+
+	// 添加自定义返回字段
 	for k, v := range options.customField {
 		retData[k] = v
 	}
+
 	c.AbortWithStatusJSON(options.code, retData)
 }

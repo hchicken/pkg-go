@@ -6,42 +6,49 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-// Conn TODO
-type Conn redis.Conn
+// RedisConnection 是 redis.Conn 的别名，用于表示一个 Redis 连接
+type Connection redis.Conn
 
-// Client TODO
-type Client struct {
-	opts Options
-	pool *redis.Pool
+// RedisClient 是一个包含连接池和配置选项的 Redis 客户端
+type RedisClient struct {
+	options Options     // Redis 连接的配置选项
+	pool    *redis.Pool // Redis 连接池
 }
 
-func newClient(opts ...Option) CachePool {
-	cli := new(Client)
-	options := newOptions(opts...)
-	cli.opts = options
-	cli.pool = &redis.Pool{
-		MaxIdle:     options.MaxIdle,     // 最大空闲数
-		IdleTimeout: options.IdleTimeout, // 最大空闲时间
-		MaxActive:   options.MaxActive,   // 最大数
-		Dial: func() (redis.Conn, error) {
+// createPool 创建一个 Redis 连接池
+func createPool(options Options) *redis.Pool {
+	return &redis.Pool{
+		MaxIdle:     options.MaxIdle,     // 连接池中的最大空闲连接数
+		IdleTimeout: options.IdleTimeout, // 空闲连接的最大等待时间
+		MaxActive:   options.MaxActive,   // 连接池中的最大活动连接数
+		Dial: func() (redis.Conn, error) { // 创建新的 Redis 连接的函数
 			dbOption := redis.DialDatabase(options.db)
 			pwOption := redis.DialPassword(options.password)
 
-			c, err := redis.Dial("tcp", options.uri, dbOption, pwOption)
+			connection, err := redis.Dial("tcp", options.uri, dbOption, pwOption)
 			if err != nil {
+				// 如果连接失败，记录错误信息
 				return nil, err
 			}
-			return c, err
+			return connection, err
 		},
-		TestOnBorrow: func(c redis.Conn, t time.Time) error {
-			_, err := c.Do("PING")
+		TestOnBorrow: func(connection redis.Conn, t time.Time) error { // 从连接池借用连接时的测试函数
+			_, err := connection.Do("PING")
 			return err
 		},
 	}
-	return cli
 }
 
-// GetCli 获取redis客户端
-func (cli *Client) GetCli() Conn {
-	return cli.pool.Get()
+// newClient 创建一个新的 Redis 客户端
+func newClient(options ...Option) CachePool {
+	client := new(RedisClient)
+	clientOptions := newOptions(options...)
+	client.options = clientOptions
+	client.pool = createPool(clientOptions)
+	return client
+}
+
+// GetConnection 从连接池中获取一个 Redis 连接
+func (client *RedisClient) GetConnection() Connection {
+	return client.pool.Get()
 }

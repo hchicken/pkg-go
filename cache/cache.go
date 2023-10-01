@@ -2,7 +2,7 @@ package cache
 
 // CachePool 缓存池
 type CachePool interface {
-	GetCli() Conn // 获取链接
+	GetConnection() Connection // 获取链接
 }
 
 // NewCachePool 创建一个redis客户端

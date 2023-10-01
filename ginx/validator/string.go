@@ -1,17 +1,17 @@
 package validator
 
 import (
-	"fmt"
+	"log"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
 
-// 去除 string 值空格
+// Trim spaces from string values
 func doTrimStringField(fl validator.FieldLevel) bool {
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Println(err)
+			log.Printf("Error in doTrimStringField: %v", err)
 		}
 	}()
 
