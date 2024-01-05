@@ -122,8 +122,8 @@ func (c *Client) Do(method string) error {
 }
 
 // Options 返回Options
-func (c *Client) Options() Options {
-	return c.opts
+func (c *Client) Options() *Options {
+	return &c.opts
 }
 
 // SetHeaders 设置headers
