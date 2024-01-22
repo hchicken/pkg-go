@@ -3,6 +3,7 @@ package httpx
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/go-resty/resty/v2"
@@ -12,6 +13,7 @@ import (
 // Client 客户端
 type Client struct {
 	opts Options
+	err  error
 }
 
 // NewHttpClient http client
@@ -26,99 +28,59 @@ func newHttpClient(opts ...Option) *Client {
 	return cli
 }
 
-func (c *Client) parse(rsp *resty.Response) error {
-	// 设置body
-	c.opts.Response = rsp
-	if c.opts.Response.StatusCode() != 200 {
-		fmt.Println(string(rsp.Body()))
-		return fmt.Errorf(
-			"the state of the request url [%v] code is %v",
-			c.opts.URL, c.opts.Response.StatusCode(),
-		)
-	}
+func (c *Client) parse() error {
 	// 没设置返回结果直接return
 	if c.opts.Result == nil {
 		return nil
 	}
-	err := json.Unmarshal(rsp.Body(), c.opts.Result)
+	err := json.Unmarshal(c.opts.Response.Body(), c.opts.Result)
 	if err != nil {
-		return errors.Wrap(err, "error parsing results")
+		return errors.Wrap(err, "parsing result")
 	}
 	return nil
 }
 
-// SetResponse 设置返回响应body
-func (c *Client) SetResponse(rsp *resty.Response) {
-	c.opts.Response = rsp
-}
+func (c *Client) do(method string) error {
+	var rsp *resty.Response
+	var err error
 
-// Get 请求
-func (c *Client) Get() error {
-	rsp, err := c.opts.Request.Get(c.opts.URL) // 发送请求
-	if err != nil {
+	// 设置请求数据
+	switch strings.ToLower(method) {
+	case "get":
+		rsp, err = c.opts.Request.Get(c.opts.URL)
+	case "post":
+		rsp, err = c.opts.Request.Post(c.opts.URL)
+	case "put":
+		rsp, err = c.opts.Request.Put(c.opts.URL)
+	case "patch":
+		rsp, err = c.opts.Request.Patch(c.opts.URL)
+	case "delete":
+		rsp, err = c.opts.Request.Delete(c.opts.URL)
+	default:
+		err = fmt.Errorf("does not support the request of the method [%v]", method)
 		return err
 	}
-	return c.parse(rsp)
-}
-
-// Post 请求
-func (c *Client) Post() error {
-	// 发送请求
-	rsp, err := c.opts.Request.Post(c.opts.URL) // 发送请求
-	if err != nil {
-		return err
+	defer c.SetResponse(rsp)
+	//fmt.Println(rsp.StatusCode())
+	// 设置body
+	if rsp.StatusCode() != 200 {
+		log.Println(string(rsp.Body()))
+		return fmt.Errorf("invoke url [%v] code is %v", c.opts.URL, c.opts.Response.StatusCode())
 	}
-	return c.parse(rsp)
-}
-
-// Put 请求
-func (c *Client) Put() error {
-	// 发送请求
-	rsp, err := c.opts.Request.Put(c.opts.URL) // 发送请求
-	if err != nil {
-		return err
-	}
-	return c.parse(rsp)
-}
-
-// Patch 请求
-func (c *Client) Patch() error {
-	// 发送请求
-	rsp, err := c.opts.Request.Patch(c.opts.URL) // 发送请求
-	if err != nil {
-		return err
-	}
-	return c.parse(rsp)
-}
-
-// Delete 请求
-func (c *Client) Delete() error {
-	// 发送请求
-	rsp, err := c.opts.Request.Delete(c.opts.URL) // 发送请求
-	if err != nil {
-		return err
-	}
-	return c.parse(rsp)
+	return err
 }
 
 // Do 发送请求
 func (c *Client) Do(method string) error {
-	var err error
-	switch strings.ToLower(method) {
-	case "get":
-		err = c.Get()
-	case "post":
-		err = c.Post()
-	case "put":
-		err = c.Put()
-	case "patch":
-		err = c.Patch()
-	case "delete":
-		err = c.Delete()
-	default:
-		err = fmt.Errorf("does not support the request of the method [%v]", method)
+	err := c.do(method)
+	if err != nil && c.opts.Retry && c.opts.RetryCount < c.opts.MaxRetryCount {
+		c.opts.RetryCount++
+		return c.Do(method)
 	}
-	return err
+	if err != nil {
+		return err
+	}
+	return c.parse()
 }
 
 // Options 返回Options
@@ -142,4 +104,9 @@ func (c *Client) SetParam(param map[string]string) {
 func (c *Client) SetBody(body interface{}) {
 	c.opts.Body = body
 	c.opts.Request.SetBody(body)
+}
+
+// SetResponse 设置返回响应body
+func (c *Client) SetResponse(rsp *resty.Response) {
+	c.opts.Response = rsp
 }

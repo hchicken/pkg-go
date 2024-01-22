@@ -29,12 +29,18 @@ type Options struct {
 	RspBody     []byte
 	Request     *resty.Request
 	Response    *resty.Response
+
+	// 设置自动重试
+	Retry         bool
+	RetryCount    int
+	MaxRetryCount int
 }
 
 func newOptions(opts ...Option) Options {
 	opt := Options{
-		RestyClient: DefaultClient(),
-		Body:        new(interface{}),
+		RestyClient:   DefaultClient(),
+		Body:          new(interface{}),
+		MaxRetryCount: 3,
 	}
 
 	opt.Request = opt.RestyClient.R()
@@ -87,6 +93,20 @@ func Body(body interface{}) Option {
 func Result(result interface{}) Option {
 	return func(o *Options) {
 		o.Result = result
+	}
+}
+
+// Retry 失败重试次数
+func Retry(b bool) Option {
+	return func(o *Options) {
+		o.Retry = b
+	}
+}
+
+// MaxRetryCount 重试的最大次数
+func MaxRetryCount(count int) Option {
+	return func(o *Options) {
+		o.MaxRetryCount = count
 	}
 }
 
