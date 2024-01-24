@@ -1,4 +1,4 @@
-module github.com/hchicken/pkg-go/log
+module github.com/hchicken/pkg-go/logx
 
 go 1.19
 
