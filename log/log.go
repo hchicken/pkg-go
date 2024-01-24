@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/hchicken/pkg-go/stringx"
+	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"github.com/sirupsen/logrus"
 )
 
-// LoggerIns ...
 type LoggerIns struct {
 	*logrus.Logger
 }
@@ -32,15 +34,15 @@ type LoggerOptions struct {
 	table     map[string]*LoggerIns
 }
 
-// NewLogger 新建一个日志记录器
+// newLogger 新建一个日志记录器
 func NewLogger(opts ...LoggerOption) Logger {
 	// 初始化配置
 	opt := LoggerOptions{
 		formatter: &logrus.JSONFormatter{
 			FieldMap: logrus.FieldMap{
-				logrus.FieldKeyMsg:   "log_message",
-				logrus.FieldKeyTime:  "log_asctime",
-				logrus.FieldKeyFile:  "log_file",
+				logrus.FieldKeyMsg:  "log_message",
+				logrus.FieldKeyTime: "log_asctime",
+				//logrus.FieldKeyFile:  "log_file",
 				logrus.FieldKeyFunc:  "log_func",
 				logrus.FieldKeyLevel: "log_level",
 			},
@@ -63,17 +65,32 @@ func (ls *Logger) new(file string) *LoggerIns {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		_ = os.MkdirAll(dir, os.ModePerm)
 	}
-	fPath := fmt.Sprintf("%v%v", ls.opts.path, file)
 
-	l.SetLevel(logrus.InfoLevel)                                                  // 设置打印日志等级
-	l.SetFormatter(ls.opts.formatter)                                             // 打印日志
-	l.SetReportCaller(true)                                                       // 设置显示行号
-	fp, _ := os.OpenFile(fPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.ModePerm) // 设置日志输入文件
-	l.SetOutput(fp)
+	// 设置对应的时间
+	fPath := path.Join(ls.opts.path, file)
+	var newFilename string
+	fileArr := strings.Split(fPath, ".")
+	if len(fileArr) > 1 {
+		newFilenameArr := strings.Join(fileArr[:len(fileArr)-1], ".")
+		newFilename = fmt.Sprintf("%v_%v.%v", newFilenameArr, "%Y%m%d", fileArr[len(fileArr)-1])
+	} else {
+		newFilename = fmt.Sprintf("%v_%v", "%Y%m%d", fPath)
+	}
+
+	writer, _ := rotatelogs.New(
+		newFilename,
+		// 设置日志切割时间间隔(1天)(隔多久分割一次)
+		rotatelogs.WithRotationTime(24*time.Hour),
+	)
+
+	l.SetLevel(logrus.InfoLevel)      // 设置打印日志等级
+	l.SetFormatter(ls.opts.formatter) // 打印日志
+	l.SetOutput(writer)
+
 	return &LoggerIns{l}
 }
 
-// Get ...
+// get ...
 func (ls *Logger) Get(file string) *LoggerIns {
 
 	// 加锁
