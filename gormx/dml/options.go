@@ -18,7 +18,8 @@ type Options struct {
 	Like       []string    // like的查询条件
 	Page       int         // 页码
 	Limit      int         // 查询数量
-	Total      *int64      // 查询数量
+	Offset     int         // 偏移量
+	Total      *int64      // 总数
 	SortField  string      // 排序
 	STime      string      // 开始时间
 	ETime      string      // 结束时间
@@ -89,6 +90,20 @@ func Total(total *int64) Option {
 func Limit(limit int) Option {
 	return func(o *Options) {
 		o.Limit = limit
+	}
+}
+
+// Offset 偏移量
+func Offset(offset int) Option {
+	return func(o *Options) {
+		o.Offset = offset
+	}
+}
+
+// Page 页码
+func Page(page int) Option {
+	return func(o *Options) {
+		o.Page = page
 	}
 }
 

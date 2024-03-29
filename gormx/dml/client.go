@@ -84,6 +84,10 @@ func (c *client) Read() error {
 	if c.opts.Limit != 0 && c.opts.Page != 0 {
 		pool = pool.Offset((c.opts.Page - 1) * c.opts.Limit)
 	}
+	// offset 优先级高于page
+	if c.opts.Offset != 0 {
+		pool = pool.Offset(c.opts.Offset)
+	}
 
 	if c.opts.SortField == "" {
 		c.opts.SortField = "id DESC"
