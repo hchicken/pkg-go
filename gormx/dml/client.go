@@ -77,6 +77,15 @@ func (c *client) Read() error {
 	if err != nil {
 		return err
 	}
+
+	// 查询 total
+	if c.opts.Total != nil {
+		err = pool.Model(c.opts.DbModel).Select("id").Count(c.opts.Total).Error
+		if err != nil {
+			return err
+		}
+	}
+
 	// 分页
 	if c.opts.Limit != 0 {
 		pool = pool.Limit(c.opts.Limit)
@@ -92,6 +101,7 @@ func (c *client) Read() error {
 	if c.opts.SortField == "" {
 		c.opts.SortField = "id DESC"
 	}
+
 	return pool.Model(c.opts.DbModel).Order(c.opts.SortField).Scan(c.opts.ScanModel).Error
 }
 
