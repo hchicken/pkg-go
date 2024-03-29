@@ -80,7 +80,7 @@ func (c *client) Read() error {
 
 	// 查询 total
 	if c.opts.Total != nil {
-		err = pool.Model(c.opts.DbModel).Select("id").Count(c.opts.Total).Error
+		err = pool.Model(c.opts.DbModel).Count(c.opts.Total).Error
 		if err != nil {
 			return err
 		}
