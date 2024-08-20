@@ -34,6 +34,8 @@ type Options struct {
 	Retry         bool
 	RetryCount    int
 	MaxRetryCount int
+
+	IgnoreStatus bool
 }
 
 func newOptions(opts ...Option) Options {
@@ -41,6 +43,7 @@ func newOptions(opts ...Option) Options {
 		RestyClient:   DefaultClient(),
 		Body:          new(interface{}),
 		MaxRetryCount: 3,
+		Retry:         false,
 	}
 
 	opt.Request = opt.RestyClient.R()
@@ -114,5 +117,12 @@ func MaxRetryCount(count int) Option {
 func RestyClient(cli *resty.Client) Option {
 	return func(o *Options) {
 		o.RestyClient = cli
+	}
+}
+
+// IgnoreStatus 忽略状态
+func IgnoreStatus(b bool) Option {
+	return func(o *Options) {
+		o.IgnoreStatus = b
 	}
 }
