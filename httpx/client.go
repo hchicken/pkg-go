@@ -64,8 +64,9 @@ func (c *Client) do(method string) error {
 	//fmt.Println(rsp.StatusCode())
 	// 设置body
 	if !c.opts.IgnoreStatus && rsp.StatusCode() != 200 {
-		log.Println(string(rsp.Body()))
-		return fmt.Errorf("invoke url [%v], code is [%v],  response body is [%v]", c.opts.URL, c.opts.Response.StatusCode(), rsp.Body())
+		rspBody := string(rsp.Body())
+		log.Println(rspBody)
+		return fmt.Errorf("invoke url [%v], code is [%v],  response body is [%v]", c.opts.URL, c.opts.Response.StatusCode(), rspBody)
 	}
 	return err
 }
