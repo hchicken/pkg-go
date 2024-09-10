@@ -54,18 +54,19 @@ func (ls *Logger) new(file string) *LoggerIns {
 
 	writer, _ := rotatelogs.New(
 		newFilename,
-		// 设置日志切割时间间隔(1天)(隔多久分割一次)
-		rotatelogs.WithRotationTime(24*time.Hour),
+		rotatelogs.WithRotationTime(24*time.Hour), // 设置日志切割时间间隔(1天)(隔多久分割一次)
 	)
 
-	l.SetLevel(logrus.InfoLevel)      // 设置打印日志等级
-	l.SetFormatter(ls.opts.formatter) // 打印日志
+	// 基础设置
+	l.SetReportCaller(ls.opts.reportCaller) // 打印行号
+	l.SetLevel(ls.opts.logLevel)            // 设置打印日志等级
+	l.SetFormatter(ls.opts.formatter)       // 打印日志
 	l.SetOutput(writer)
 
 	return &LoggerIns{l}
 }
 
-// get ...
+// Get ...
 func (ls *Logger) Get(file string) *LoggerIns {
 
 	// 加锁
