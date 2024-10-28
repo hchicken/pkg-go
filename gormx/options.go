@@ -1,12 +1,18 @@
 package gormx
 
-import "time"
+import (
+	"time"
+
+	"gorm.io/gorm"
+)
 
 // Option ...
 type Option func(*Options)
 
 // Options gormx options
 type Options struct {
+	db *gorm.DB
+
 	uri             string
 	port            string
 	name            string
@@ -23,6 +29,13 @@ func newOptions(opts ...Option) Options {
 		o(&opt)
 	}
 	return opt
+}
+
+// DB set gorm db
+func DB(db *gorm.DB) Option {
+	return func(o *Options) {
+		o.db = db
+	}
 }
 
 // Uri ...

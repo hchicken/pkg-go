@@ -17,7 +17,7 @@ func handleError(c *gin.Context, err error, message string) error {
 // ShouldBindJSON json数据验证
 func ShouldBindJSON(c *gin.Context, d interface{}) error {
 	err := c.ShouldBindJSON(d)
-	return handleError(c, err, "参数认证失败,确定请求数据是否为json")
+	return handleError(c, err, "参数认证失败")
 }
 
 // ShouldBindQuery form数据验证

@@ -3,6 +3,8 @@ package response
 import (
 	"fmt"
 	"net/http"
+	"net/url"
+	"path"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +30,8 @@ type Options struct {
 	output      interface{}
 	async       bool
 	customField map[string]interface{}
+	fileBytes   []byte
+	filename    string
 }
 
 // NewOptions 创建一个新的Options实例
@@ -37,6 +41,7 @@ func NewOptions() *Options {
 		code:        http.StatusOK,
 		status:      CodeSuccess,
 		customField: make(map[string]interface{}),
+		filename:    "name",
 	}
 }
 
@@ -63,6 +68,13 @@ func Error(err error) Option {
 	}
 }
 
+// Code 设置状态码
+func Code(code int) Option {
+	return func(o *Options) {
+		o.code = code
+	}
+}
+
 // Data 设置数据选项
 func Data(data interface{}) Option {
 	return func(o *Options) {
@@ -81,6 +93,20 @@ func Async(ok bool) Option {
 func CustomField(key string, value interface{}) Option {
 	return func(o *Options) {
 		o.customField[key] = value
+	}
+}
+
+// FileBytes 返回文件字节
+func FileBytes(bf []byte) Option {
+	return func(o *Options) {
+		o.fileBytes = bf
+	}
+}
+
+// FileName 返回文件字节
+func FileName(name string) Option {
+	return func(o *Options) {
+		o.filename = name
 	}
 }
 
@@ -103,4 +129,14 @@ func Json(c *gin.Context, opts ...Option) {
 	}
 
 	c.AbortWithStatusJSON(options.code, retData)
+}
+
+// Blob 返回文件类型
+func Blob(c *gin.Context, opts ...Option) {
+	options := NewOptions()
+	options.ApplyOptions(opts...)
+	disposition := fmt.Sprintf(`attachment; filename=%s`, url.PathEscape(path.Base(options.filename)))
+	c.Writer.Header().Add("Content-Disposition", disposition)
+	c.Writer.Header().Add("Content-Type", "application/octet-stream")
+	c.Data(200, "application/octet-stream", options.fileBytes)
 }
