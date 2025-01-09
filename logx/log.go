@@ -8,9 +8,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hchicken/pkg-go/stringx"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
+
+	"github.com/hchicken/pkg-go/stringx"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 // LoggerIns ...
@@ -43,25 +45,41 @@ func (ls *Logger) new(file string) *LoggerIns {
 
 	// 设置对应的时间
 	fPath := path.Join(ls.opts.path, file)
-	var newFilename string
-	fileArr := strings.Split(fPath, ".")
-	if len(fileArr) > 1 {
-		newFilenameArr := strings.Join(fileArr[:len(fileArr)-1], ".")
-		newFilename = fmt.Sprintf("%v_%v.%v", newFilenameArr, "%Y%m%d", fileArr[len(fileArr)-1])
-	} else {
-		newFilename = fmt.Sprintf("%v_%v", "%Y%m%d", fPath)
-	}
 
-	writer, _ := rotatelogs.New(
-		newFilename,
-		rotatelogs.WithRotationTime(24*time.Hour), // 设置日志切割时间间隔(1天)(隔多久分割一次)
-	)
+	// 设置io.Writer
+	switch ls.opts.writerType {
+	case RotateWriter:
+		var newFilename string
+		fileArr := strings.Split(fPath, ".")
+		if len(fileArr) > 1 {
+			newFilenameArr := strings.Join(fileArr[:len(fileArr)-1], ".")
+			newFilename = fmt.Sprintf("%v_%v.%v", newFilenameArr, "%Y%m%d", fileArr[len(fileArr)-1])
+		} else {
+			newFilename = fmt.Sprintf("%v_%v", "%Y%m%d", fPath)
+		}
+		writer, _ := rotatelogs.New(
+			newFilename,
+			rotatelogs.WithRotationTime(time.Duration(ls.opts.rotate)*time.Hour), // Rotate every * hours
+			rotatelogs.WithMaxAge(time.Duration(ls.opts.maxAge)*24*time.Hour),    // Keep logs for * days
+		)
+		l.SetOutput(writer)
+	case LumberjackWriter:
+		writer := &lumberjack.Logger{
+			Filename:   fPath,
+			MaxSize:    ls.opts.maxSize,
+			MaxBackups: ls.opts.maxBackups,
+			MaxAge:     ls.opts.maxAge,
+			Compress:   true,
+		}
+		l.SetOutput(writer)
+	default:
+		l.SetOutput(os.Stdout)
+	}
 
 	// 基础设置
 	l.SetReportCaller(ls.opts.reportCaller) // 打印行号
 	l.SetLevel(ls.opts.logLevel)            // 设置打印日志等级
 	l.SetFormatter(ls.opts.formatter)       // 打印日志
-	l.SetOutput(writer)
 
 	return &LoggerIns{l}
 }

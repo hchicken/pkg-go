@@ -1,6 +1,8 @@
 package logx
 
-import "github.com/sirupsen/logrus"
+import (
+	"github.com/sirupsen/logrus"
+)
 
 const (
 	// PanicLevel level, highest level of severity. Logs and then calls panic with the
@@ -23,6 +25,11 @@ const (
 	TraceLevel
 )
 
+const (
+	RotateWriter     = "RotateWriter"
+	LumberjackWriter = "LumberjackWriter"
+)
+
 // LoggerOption ...
 type LoggerOption func(*LoggerOptions)
 
@@ -36,6 +43,12 @@ type LoggerOptions struct {
 
 	formatter logrus.Formatter
 	table     map[string]*LoggerIns
+
+	writerType string
+	maxSize    int
+	maxBackups int
+	maxAge     int
+	rotate     int
 }
 
 // newOptions ...
@@ -47,11 +60,17 @@ func newOptions(opts ...LoggerOption) LoggerOptions {
 		formatter: &TextFormatter{
 			HideKeys: true,
 		},
-		table: make(map[string]*LoggerIns, 5),
+		table:      make(map[string]*LoggerIns, 5),
+		writerType: RotateWriter,
+		maxSize:    2048, // Max size in MB (1GB)
+		maxBackups: 7,    // Number of old files to retain
+		maxAge:     7,    // MaxAge
+		rotate:     24,   // 日志切割时间
 	}
 	for _, o := range opts {
 		o(&opt)
 	}
+
 	return opt
 }
 
@@ -87,5 +106,40 @@ func ReportCaller(ok bool) LoggerOption {
 func LogLevel(level logrus.Level) LoggerOption {
 	return func(o *LoggerOptions) {
 		o.logLevel = level
+	}
+}
+
+// WriterType Writer类型
+func WriterType(writerType string) LoggerOption {
+	return func(o *LoggerOptions) {
+		o.writerType = writerType
+	}
+}
+
+// MaxSize 设置日志最大容量,单位:MB
+func MaxSize(maxSize int) LoggerOption {
+	return func(o *LoggerOptions) {
+		o.maxSize = maxSize
+	}
+}
+
+// MaxBackups Number of old files to retain
+func MaxBackups(maxBackups int) LoggerOption {
+	return func(o *LoggerOptions) {
+		o.maxBackups = maxBackups
+	}
+}
+
+// MaxAge 日志最大保留时间,单位:day
+func MaxAge(maxAge int) LoggerOption {
+	return func(o *LoggerOptions) {
+		o.maxAge = maxAge
+	}
+}
+
+// Rotate 日志切割时间,单位:h
+func Rotate(rotate int) LoggerOption {
+	return func(o *LoggerOptions) {
+		o.rotate = rotate
 	}
 }

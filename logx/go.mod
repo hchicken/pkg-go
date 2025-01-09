@@ -6,6 +6,7 @@ require (
 	github.com/hchicken/pkg-go/stringx v0.0.0-20230707030714-8a20ec22d597
 	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
 	github.com/sirupsen/logrus v1.9.3
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (
