@@ -6,7 +6,7 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-// RedisConnection 是 redis.Conn 的别名，用于表示一个 Redis 连接
+// Connection 是 redis.Conn 的别名，用于表示一个 Redis 连接
 type Connection redis.Conn
 
 // RedisClient 是一个包含连接池和配置选项的 Redis 客户端
@@ -24,7 +24,6 @@ func createPool(options Options) *redis.Pool {
 		Dial: func() (redis.Conn, error) { // 创建新的 Redis 连接的函数
 			dbOption := redis.DialDatabase(options.db)
 			pwOption := redis.DialPassword(options.password)
-
 			connection, err := redis.Dial("tcp", options.uri, dbOption, pwOption)
 			if err != nil {
 				// 如果连接失败，记录错误信息

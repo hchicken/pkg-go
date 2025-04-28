@@ -17,7 +17,9 @@ type Options struct {
 
 // newOptions 创建一个新的Options实例，并应用提供的选项
 func newOptions(opts ...Option) Options {
-	opt := *new(Options)
+	opt := Options{
+		uri: "127.0.0.1:6379",
+	}
 	for _, o := range opts {
 		o(&opt)
 	}
