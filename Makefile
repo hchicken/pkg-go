@@ -1,20 +1,29 @@
-# Go 环境变量
-GOHOSTOS:=$(shell go env GOHOSTOS)
-GOPATH:=$(shell go env GOPATH)
-GOVERSION:=$(shell go version | awk '{print $$3}')
-VERSION:=$(shell git describe --tags --always)
-COMMIT:=$(shell git rev-parse --short HEAD)
-BUILD_TIME:=$(shell date '+%Y-%m-%d %H:%M:%S')
-
 # 项目信息
 PROJECT_NAME:=pkg-go
-BUILD_DIR:=build
-DIST_DIR:=dist
+VERSION:=$(shell git describe --tags --always)
 
-.PHONY: release clean test lint fmt vet deps check build info
+.PHONY: release clean get-version help
 
-# 生成发布版本
+# 获取包的最新版本
+get-version:
+	@read -p "Enter package name: " package; \
+	if [ -z "$$package" ]; then \
+		echo "Error: Package name cannot be empty"; \
+		exit 1; \
+	fi; \
+	echo "Getting latest version for package: $$package"; \
+	latest_tag=$$(git tag -l "$$package/*" --sort=-version:refname | head -1); \
+	if [ -z "$$latest_tag" ]; then \
+		echo "No version found for package: $$package"; \
+		echo "Available packages:"; \
+		git tag -l | cut -d'/' -f1 | sort -u | sed 's/^/  - /'; \
+	else \
+		echo "Latest version: $$latest_tag"; \
+	fi
+
+# 打包发布
 release:
+	@echo "Starting release process..."
 	@read -p "Enter package name (or 'all' for all packages): " package; \
 	if [ -z "$$package" ]; then \
 		echo "Error: Package name cannot be empty"; \
@@ -23,10 +32,6 @@ release:
 	read -p "Enter version number (e.g., v1.0.0): " version; \
 	if [ -z "$$version" ]; then \
 		echo "Error: Version number cannot be empty"; \
-		exit 1; \
-	fi; \
-	if ! echo "$$version" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$$'; then \
-		echo "Error: Version must follow semantic versioning (e.g., v1.0.0)"; \
 		exit 1; \
 	fi; \
 	echo "Creating release for $$package version $$version"; \
@@ -40,93 +45,22 @@ release:
 # 清理构建文件
 clean:
 	@echo "Cleaning build artifacts..."
-	@rm -rf $(BUILD_DIR) $(DIST_DIR)
-	@rm -f *.zip *.tar.gz
+	@rm -rf build dist *.zip *.tar.gz
 	@echo "Clean completed"
 
-# 运行测试
-test:
-	@echo "Running tests..."
-	@go test -v ./...
-
-# 运行测试并生成覆盖率报告
-test-coverage:
-	@echo "Running tests with coverage..."
-	@go test -v -coverprofile=coverage.out ./...
-	@go tool cover -html=coverage.out -o coverage.html
-	@echo "Coverage report generated: coverage.html"
-
-# 代码格式化
-fmt:
-	@echo "Formatting code..."
-	@go fmt ./...
-
-# 代码检查
-vet:
-	@echo "Running go vet..."
-	@go vet ./...
-
-# 代码风格检查 (需要安装 golint)
-lint:
-	@echo "Running golint..."
-	@if command -v golint >/dev/null 2>&1; then \
-		golint ./...; \
-	else \
-		echo "golint not installed. Run: go install golang.org/x/lint/golint@latest"; \
-	fi
-
-# 下载依赖
-deps:
-	@echo "Downloading dependencies..."
-	@go mod download
-	@go mod tidy
-
-# 更新依赖
-deps-update:
-	@echo "Updating dependencies..."
-	@go get -u ./...
-	@go mod tidy
-
-# 综合检查
-check: fmt vet lint test
-	@echo "All checks completed"
-
-# 构建所有包
-build:
-	@echo "Building packages..."
-	@mkdir -p $(BUILD_DIR)
-	@for dir in */; do \
-		if [ -f "$$dir/go.mod" ] || [ -f "$$dir/*.go" ]; then \
-			echo "Building $$dir..."; \
-			(cd "$$dir" && go build -o "../$(BUILD_DIR)/$${dir%/}" .); \
-		fi; \
-	done
-
-# 显示项目信息
-info:
-	@echo "Project Information:"
-	@echo "  Name: $(PROJECT_NAME)"
-	@echo "  Version: $(VERSION)"
-	@echo "  Commit: $(COMMIT)"
-	@echo "  Build Time: $(BUILD_TIME)"
-	@echo "  Go Version: $(GOVERSION)"
-	@echo "  Host OS: $(GOHOSTOS)"
-
-# show help
+# 显示帮助信息
 help:
-	@echo ''
-	@echo 'Usage:'
-	@echo ' make [target]'
-	@echo ''
-	@echo 'Targets:'
-	@awk '/^[a-zA-Z\-\_0-9]+:/ { \
-	helpMessage = match(lastLine, /^# (.*)/); \
-		if (helpMessage) { \
-			helpCommand = substr($$1, 0, index($$1, ":")-1); \
-			helpMessage = substr(lastLine, RSTART + 2, RLENGTH); \
-			printf "\033[36m%-22s\033[0m %s\n", helpCommand,helpMessage; \
-		} \
-	} \
-	{ lastLine = $$0 }' $(MAKEFILE_LIST)
+	@echo "$(PROJECT_NAME) Makefile"
+	@echo ""
+	@echo "Available targets:"
+	@echo "  release      - Create and publish a package release"
+	@echo "  get-version  - Get the latest version of a package"
+	@echo "  clean        - Clean build artifacts"
+	@echo "  help         - Show this help message"
+	@echo ""
+	@echo "Usage:"
+	@echo "  make release      # Interactive release process"
+	@echo "  make get-version  # Get latest version of a package"
+	@echo "  make clean        # Clean up build files"
 
 .DEFAULT_GOAL := help
