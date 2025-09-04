@@ -26,7 +26,7 @@ type Logger struct {
 	opts LoggerOptions
 }
 
-// newLogger 新建一个日志记录器
+// NewLogger 新建一个日志记录器
 func NewLogger(opts ...LoggerOption) Logger {
 	// 初始化配置
 	opt := newOptions(opts...)

@@ -15,7 +15,7 @@ const (
 	CodeError          // 错误状态码
 )
 
-// 定义TraceId常量
+// TraceId 定义TraceId常量
 const TraceId = "private-trace-id"
 
 // Option 是一个函数类型，用于修改Options
