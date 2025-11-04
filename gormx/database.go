@@ -164,3 +164,180 @@ func (d *Database) Delete() error {
 	}
 	return query.Delete(d.opts.DbModel).Error
 }
+
+// Setter methods for Database - 动态配置方法
+
+// SetPool 设置数据库连接池
+func (d *Database) SetPool(pool *gorm.DB) *Database {
+	d.db = pool
+	d.opts.Pool = pool
+	return d
+}
+
+// SetDbModel 设置DB模型
+func (d *Database) SetDbModel(model interface{}) *Database {
+	d.opts.DbModel = model
+	return d
+}
+
+// SetScanModel 设置查询结果模型
+func (d *Database) SetScanModel(model interface{}) *Database {
+	d.opts.ScanModel = model
+	return d
+}
+
+// SetConditions 设置查询条件
+func (d *Database) SetConditions(c interface{}) *Database {
+	d.opts.Conditions = c
+	return d
+}
+
+// SetExcludeFields 设置排除字段
+func (d *Database) SetExcludeFields(fields []string) *Database {
+	d.opts.ExcludeFields = fields
+	return d
+}
+
+// AddExcludeField 添加单个排除字段
+func (d *Database) AddExcludeField(field string) *Database {
+	d.opts.ExcludeFields = append(d.opts.ExcludeFields, field)
+	return d
+}
+
+// SetIn 设置IN查询条件
+func (d *Database) SetIn(in []string) *Database {
+	d.opts.In = in
+	return d
+}
+
+// SetLike 设置LIKE查询条件
+func (d *Database) SetLike(like []string) *Database {
+	d.opts.Like = like
+	return d
+}
+
+// SetTotal 设置总数指针
+func (d *Database) SetTotal(total *int64) *Database {
+	d.opts.Total = total
+	return d
+}
+
+// SetLimit 设置查询数量限制
+func (d *Database) SetLimit(limit int) *Database {
+	d.opts.Limit = limit
+	return d
+}
+
+// SetOffset 设置偏移量
+func (d *Database) SetOffset(offset int) *Database {
+	d.opts.Offset = offset
+	return d
+}
+
+// SetPage 设置页码
+func (d *Database) SetPage(page int) *Database {
+	d.opts.Page = page
+	return d
+}
+
+// SetSortField 设置排序字段
+func (d *Database) SetSortField(field string) *Database {
+	d.opts.SortField = field
+	return d
+}
+
+// SetStartTime 设置开始时间
+func (d *Database) SetStartTime(t string) *Database {
+	d.opts.StartTime = t
+	return d
+}
+
+// SetEndTime 设置结束时间
+func (d *Database) SetEndTime(t string) *Database {
+	d.opts.EndTime = t
+	return d
+}
+
+// SetUpdateName 设置更新字段key
+func (d *Database) SetUpdateName(name string) *Database {
+	d.opts.UpdateName = name
+	return d
+}
+
+// SetValues 设置更新的values
+func (d *Database) SetValues(v []string) *Database {
+	d.opts.Values = v
+	return d
+}
+
+// SetDebug 设置调试模式
+func (d *Database) SetDebug(b bool) *Database {
+	d.opts.Debug = b
+	return d
+}
+
+// 条件设置方法 - 只有在条件为真时才设置，支持链式调用
+
+// SetLimitIf 条件设置查询数量限制
+func (d *Database) SetLimitIf(condition bool, limit int) *Database {
+	if condition {
+		d.opts.Limit = limit
+	}
+	return d
+}
+
+// SetOffsetIf 条件设置偏移量
+func (d *Database) SetOffsetIf(condition bool, offset int) *Database {
+	if condition {
+		d.opts.Offset = offset
+	}
+	return d
+}
+
+// SetPageIf 条件设置页码
+func (d *Database) SetPageIf(condition bool, page int) *Database {
+	if condition {
+		d.opts.Page = page
+	}
+	return d
+}
+
+// SetSortFieldIf 条件设置排序字段
+func (d *Database) SetSortFieldIf(condition bool, field string) *Database {
+	if condition {
+		d.opts.SortField = field
+	}
+	return d
+}
+
+// SetStartTimeIf 条件设置开始时间
+func (d *Database) SetStartTimeIf(condition bool, t string) *Database {
+	if condition {
+		d.opts.StartTime = t
+	}
+	return d
+}
+
+// SetEndTimeIf 条件设置结束时间
+func (d *Database) SetEndTimeIf(condition bool, t string) *Database {
+	if condition {
+		d.opts.EndTime = t
+	}
+	return d
+}
+
+// SetDebugIf 条件设置调试模式
+func (d *Database) SetDebugIf(condition bool, b bool) *Database {
+	if condition {
+		d.opts.Debug = b
+	}
+	return d
+}
+
+// SetConditionsIf 条件设置查询条件
+func (d *Database) SetConditionsIf(condition bool, c interface{}) *Database {
+	if condition {
+		d.opts.Conditions = c
+	}
+	return d
+}

@@ -5,7 +5,7 @@ import "gorm.io/gorm"
 // ConnectionOption ...
 type ConnectionOption func(*ConnectionOptions)
 
-// db查询ConnectionOptions
+// ConnectionOptions db查询
 type ConnectionOptions struct {
 	Pool          *gorm.DB    // pool
 	DbModel       interface{} // DB结构体
@@ -37,28 +37,28 @@ func newConnectionOptions(opts ...ConnectionOption) ConnectionOptions {
 	return opt
 }
 
-// Pool ...
+// WithConnPool ...
 func WithConnPool(pool *gorm.DB) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.Pool = pool
 	}
 }
 
-// DbModel DB模型
+// WithConnDbModel DB模型
 func WithConnDbModel(model interface{}) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.DbModel = model
 	}
 }
 
-// ScanModel 查询结果
+// WithConnScanModel 查询结果
 func WithConnScanModel(model interface{}) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.ScanModel = model
 	}
 }
 
-// Conditions 查询条件
+// WithConnConditions 查询条件
 func WithConnConditions(c interface{}) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.Conditions = c
@@ -72,84 +72,84 @@ func WithConnExcludeFields(fields []string) ConnectionOption {
 	}
 }
 
-// In 查询
+// WithConnIn 查询
 func WithConnIn(in []string) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.In = in
 	}
 }
 
-// Like like查询
+// WithConnLike like查询
 func WithConnLike(like []string) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.Like = like
 	}
 }
 
-// Total 数据量
+// WithConnTotal 数据量
 func WithConnTotal(total *int64) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.Total = total
 	}
 }
 
-// Limit 数据量
+// WithConnLimit 数据量
 func WithConnLimit(limit int) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.Limit = limit
 	}
 }
 
-// Offset 偏移量
+// WithConnOffset 偏移量
 func WithConnOffset(offset int) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.Offset = offset
 	}
 }
 
-// Page 页码
+// WithConnPage 页码
 func WithConnPage(page int) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.Page = page
 	}
 }
 
-// SortField 排序字段
+// WithConnSortField 排序字段
 func WithConnSortField(field string) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.SortField = field
 	}
 }
 
-// STime 开始时间
+// WithConnStartTime 开始时间
 func WithConnStartTime(t string) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.StartTime = t
 	}
 }
 
-// ETime 结束时间
+// WithConnEndTime 结束时间
 func WithConnEndTime(t string) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.EndTime = t
 	}
 }
 
-// UpdateName 更新字段key
+// WithConnUpdateName 更新字段key
 func WithConnUpdateName(name string) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.UpdateName = name
 	}
 }
 
-// Values 更新的value
+// WithConnValues 更新的value
 func WithConnValues(v []string) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.Values = v
 	}
 }
 
-// Values 更新的value
+// WithConnDebug 更新的value
 func WithConnDebug(b bool) ConnectionOption {
 	return func(o *ConnectionOptions) {
 		o.Debug = b
