@@ -41,10 +41,35 @@ func (c *Client) parse() error {
 		return fmt.Errorf("response body size %d exceeds limit %d", len(body), c.opts.MaxResponseSize)
 	}
 
+	// 检查响应体是否为空
+	if len(body) == 0 {
+		return nil
+	}
+
+	// 检查 Content-Type 是否是 JSON
+	contentType := c.opts.Response.Header().Get("Content-Type")
+	if !c.isJSONContentType(contentType) {
+		c.opts.Logger.Printf("expected JSON response but got Content-Type: %s, body: %s", contentType, string(body))
+		return fmt.Errorf("expected JSON response but got Content-Type: %s", contentType)
+	}
+
 	if err := json.Unmarshal(body, c.opts.Result); err != nil {
-		return errors.Wrap(err, "parsing result")
+		c.opts.Logger.Printf("json unmarshal failed: %v, body: %s", err, string(body))
+		return fmt.Errorf("json unmarshal failed: %w", err)
 	}
 	return nil
+}
+
+// isJSONContentType 检查是否是 JSON Content-Type
+func (c *Client) isJSONContentType(contentType string) bool {
+	if contentType == "" {
+		// 没有 Content-Type 时尝试解析
+		return true
+	}
+	ct := strings.ToLower(contentType)
+	return strings.Contains(ct, "application/json") ||
+		strings.Contains(ct, "text/json") ||
+		strings.Contains(ct, "+json")
 }
 
 // isSuccessStatus 检查状态码是否成功

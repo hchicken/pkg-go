@@ -425,3 +425,73 @@ func TestGetRestyClientAndRequest(t *testing.T) {
 	assert.NotNil(t, client.GetRestyClient())
 	assert.NotNil(t, client.GetRestyRequest())
 }
+
+func TestNonJSONResponse(t *testing.T) {
+	t.Run("HTML response with Result should fail", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			rw.Header().Set("Content-Type", "text/html")
+			rw.WriteHeader(http.StatusOK)
+			rw.Write([]byte(`<html><body>Hello</body></html>`))
+		}))
+		defer server.Close()
+
+		var result map[string]interface{}
+		err := NewHttpClient(URL(server.URL), Result(&result)).Get()
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "expected JSON response")
+		assert.Contains(t, err.Error(), "text/html")
+	})
+
+	t.Run("HTML response without Result should succeed", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			rw.Header().Set("Content-Type", "text/html")
+			rw.WriteHeader(http.StatusOK)
+			rw.Write([]byte(`<html><body>Hello</body></html>`))
+		}))
+		defer server.Close()
+
+		client := NewHttpClient(URL(server.URL))
+		err := client.Get()
+		assert.Nil(t, err)
+		assert.Contains(t, client.GetBodyString(), "<html>")
+	})
+
+	t.Run("JSON response with Result should succeed", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			rw.Header().Set("Content-Type", "application/json")
+			rw.WriteHeader(http.StatusOK)
+			rw.Write([]byte(`{"name":"test"}`))
+		}))
+		defer server.Close()
+
+		var result map[string]string
+		err := NewHttpClient(URL(server.URL), Result(&result)).Get()
+		assert.Nil(t, err)
+		assert.Equal(t, "test", result["name"])
+	})
+
+	t.Run("Invalid JSON with JSON Content-Type should fail", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			rw.Header().Set("Content-Type", "application/json")
+			rw.WriteHeader(http.StatusOK)
+			rw.Write([]byte(`{invalid json}`))
+		}))
+		defer server.Close()
+
+		var result map[string]interface{}
+		err := NewHttpClient(URL(server.URL), Result(&result)).Get()
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "json unmarshal failed")
+	})
+
+	t.Run("Empty response body should succeed", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			rw.WriteHeader(http.StatusNoContent)
+		}))
+		defer server.Close()
+
+		var result map[string]interface{}
+		err := NewHttpClient(URL(server.URL), Result(&result), SuccessStatusRange(200, 299)).Get()
+		assert.Nil(t, err)
+	})
+}
