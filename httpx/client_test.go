@@ -438,8 +438,7 @@ func TestNonJSONResponse(t *testing.T) {
 		var result map[string]interface{}
 		err := NewHttpClient(URL(server.URL), Result(&result)).Get()
 		assert.NotNil(t, err)
-		assert.Contains(t, err.Error(), "expected JSON response")
-		assert.Contains(t, err.Error(), "text/html")
+		assert.Contains(t, err.Error(), "json unmarshal failed")
 	})
 
 	t.Run("HTML response without Result should succeed", func(t *testing.T) {
@@ -470,7 +469,22 @@ func TestNonJSONResponse(t *testing.T) {
 		assert.Equal(t, "test", result["name"])
 	})
 
-	t.Run("Invalid JSON with JSON Content-Type should fail", func(t *testing.T) {
+	t.Run("JSON with wrong Content-Type should succeed", func(t *testing.T) {
+		// 有些服务器返回 JSON 但 Content-Type 设置不正确
+		server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+			rw.Header().Set("Content-Type", "text/html; charset=utf-8")
+			rw.WriteHeader(http.StatusOK)
+			rw.Write([]byte(`{"name":"test"}`))
+		}))
+		defer server.Close()
+
+		var result map[string]string
+		err := NewHttpClient(URL(server.URL), Result(&result)).Get()
+		assert.Nil(t, err)
+		assert.Equal(t, "test", result["name"])
+	})
+
+	t.Run("Invalid JSON should fail", func(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 			rw.Header().Set("Content-Type", "application/json")
 			rw.WriteHeader(http.StatusOK)
